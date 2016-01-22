@@ -24,6 +24,7 @@ import com.strands.interviews.eventsystem.InterviewEventListener;
 public class DefaultEventManager implements EventManager {
 	private final Map<String, InterviewEventListener> listeners = new HashMap<String, InterviewEventListener>();
 	private final Map<Class<?>, List<InterviewEventListener>> listenersByClass = new HashMap<Class<?>, List<InterviewEventListener>>();
+	private final List<InterviewEventListener> allEventListeners = new ArrayList<InterviewEventListener>();
 
 	public void publishEvent(final InterviewEvent event) {
 		if (event == null) {
@@ -35,7 +36,13 @@ public class DefaultEventManager implements EventManager {
 	}
 
 	private Collection<InterviewEventListener> calculateListeners(final Class<?> eventClass) {
-		return listenersByClass.get(eventClass);
+		final Collection<InterviewEventListener> listeners = listenersByClass.get(eventClass);
+		if (listeners != null) {
+			listeners.addAll(allEventListeners);
+			return listeners;
+		} else {
+			return allEventListeners;
+		}
 	}
 
 	public void registerListener(final String listenerKey, final InterviewEventListener listener) {
@@ -52,10 +59,7 @@ public class DefaultEventManager implements EventManager {
 		}
 
 		final Class<?>[] classes = listener.getHandledEventClasses();
-
-		for (final Class<?> classe : classes) {
-			addToListenerList(classe, listener);
-		}
+		addToListenersList(classes, listener);
 
 		listeners.put(listenerKey, listener);
 	}
@@ -87,6 +91,16 @@ public class DefaultEventManager implements EventManager {
 		}
 
 		listenersByClass.get(aClass).add(listener);
+	}
+
+	private void addToListenersList(final Class<?>[] classes, final InterviewEventListener listener) {
+		if (classes.length == 0) {
+			allEventListeners.add(listener);
+		} else {
+			for (final Class<?> classe : classes) {
+				addToListenerList(classe, listener);
+			}
+		}
 	}
 
 	public Map<String, InterviewEventListener> getListeners() {
