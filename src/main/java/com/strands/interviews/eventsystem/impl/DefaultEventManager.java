@@ -35,8 +35,18 @@ public class DefaultEventManager implements EventManager {
 		sendEventTo(event, calculateListeners(event.getClass()));
 	}
 
+	private Collection<InterviewEventListener> getListenersByClass(final Class<?> eventClass) {
+		final Collection<InterviewEventListener> listeners = new ArrayList<InterviewEventListener>();
+		for (final Map.Entry<Class<?>, List<InterviewEventListener>> entry : listenersByClass.entrySet()) {
+			if (entry.getKey().isAssignableFrom(eventClass)) {
+				listeners.addAll(entry.getValue());
+			}
+		}
+		return listeners;
+	}
+
 	private Collection<InterviewEventListener> calculateListeners(final Class<?> eventClass) {
-		final Collection<InterviewEventListener> listeners = listenersByClass.get(eventClass);
+		final Collection<InterviewEventListener> listeners = getListenersByClass(eventClass);
 		if (listeners != null) {
 			listeners.addAll(allEventListeners);
 			return listeners;
